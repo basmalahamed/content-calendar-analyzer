@@ -3,11 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import os
-from anthropic import Anthropic
+import google.generativeai as genai
 
 st.set_page_config(page_title="محلل البراند - الخطوة 1", layout="wide")
 
-client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def scrape_website(url):
     """يجيب النص الظاهر من صفحة الموقع"""
@@ -44,12 +44,9 @@ def extract_brand_profile(website_text, website_url):
 نص الموقع:
 {website_text}
 """
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    raw = message.content[0].text.strip()
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    response = model.generate_content(prompt)
+    raw = response.text.strip()
     raw = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(raw)
 
