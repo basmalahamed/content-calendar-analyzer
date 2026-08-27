@@ -1,4 +1,2 @@
 streamlit
-anthropic
-requests
-beautifulsoup4
+google-generativeai
