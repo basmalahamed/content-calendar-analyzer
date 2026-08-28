@@ -44,7 +44,7 @@ def extract_brand_profile(website_text, website_url):
 نص الموقع:
 {website_text}
 """
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)
     raw = response.text.strip()
     raw = raw.replace("```json", "").replace("```", "").strip()
