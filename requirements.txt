@@ -3,3 +3,6 @@ google-generativeai
 requests
 beautifulsoup4
 openpyxl
+fpdf2
+arabic-reshaper
+python-bidi
