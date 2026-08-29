@@ -186,7 +186,8 @@ Brand Profile:
 - نوّعي الـ format حسب كل منصة
 - الـ viral_potential_score تقدير فقط، ومتضمنيش انتشار فعلي أبداً - اكتبي ده في الـ disclaimer
 - كل تاريخ لازم يكون داخل الفترة الزمنية المحددة
- مهم جداً: كل عامل في factors (freshness, relevance, brand_fit, shareability, value, platform_suitability) لازم يكون رقم من 0 لـ10 بس. أما score الكلي فلازم يكون رقم من 0 لـ100 (يعني تقريباً مجموع الستة عوامل بعد ضربهم في نسبة مناسبة عشان يوصلوا لمقياس من 100). مثال صحيح: لو كل العوامل حواليها 7 من 10، يبقى score الكلي المفروض يكون حوالي 70 من 100، مش 7
+- مهم جداً: كل عامل في factors (freshness, relevance, brand_fit, shareability, value, platform_suitability) لازم يكون رقم من 0 لـ10 بس. أما score الكلي فلازم يكون رقم من 0 لـ100 (يعني تقريباً مجموع الستة عوامل بعد ضربهم في نسبة مناسبة عشان يوصلوا لمقياس من 100). مثال صحيح: لو كل العوامل حواليها 7 من 10، يبقى score الكلي المفروض يكون حوالي 70 من 100، مش 7.
+
 رجّعي مصفوفة JSON فقط (من غير أي كلام إضافي)، كل عنصر بالشكل ده بالظبط:
 [{CALENDAR_ITEM_SCHEMA}]
 """
@@ -214,7 +215,7 @@ Brand Profile:
 
 لغة المحتوى: {language}
 
-رجّعي عنصر JSON واحد فقط (من غير مصفوفة، من غير أي كلام إضافي) بالشكل ده، وخلي date/platform/format/content_pillar/objective زي ما هما فوق بالظبط:
+رجّعي عنصر JSON واحد فقط (من غير مصفوفة، من غير أي كلام إضافي) بالشكل ده، وخلي date/platform/format/content_pillar/objective زي ما هما فوق بالظبط، ومهم جداً score الكلي يبقى من 0 لـ100:
 {CALENDAR_ITEM_SCHEMA}
 """
     model = genai.GenerativeModel("gemini-3.6-flash")
@@ -256,6 +257,18 @@ def flatten_calendar(calendar_items):
         })
     return pd.DataFrame(rows)
 
+def render_profile_card(icon, label, content, color):
+    safe_content = html.escape(content) if content else "<i style='color:#888'>Not set</i>"
+    st.markdown(
+        f"""<div style='background:#1C1F26;border-top:4px solid {color};border-radius:10px;
+        padding:16px;margin-bottom:16px;min-height:150px;'>
+        <div style='font-size:20px;margin-bottom:8px;'>{icon}
+        <span style='font-size:15px;color:{color};font-weight:700;'> {html.escape(label)}</span></div>
+        <div style='font-size:15px;line-height:1.6;color:#FFFFFF;'>{safe_content}</div>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
 # ---------- UI ----------
 
 st.title("🧠 AI Content Calendar")
@@ -296,42 +309,61 @@ if submitted:
                     st.session_state.brand_profile = profile
                     st.session_state.trends = None
                     st.session_state.calendar = None
-                    st.success("Analysis complete! You can edit the results below.")
+                    st.success("Analysis complete! Scroll down to see your Brand Profile.")
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
 
 if st.session_state.brand_profile:
     st.divider()
-    st.subheader("3. Brand Profile — Editable")
+    st.subheader("3. Brand Profile")
     p = st.session_state.brand_profile
 
-    with st.form("edit_form"):
-        positioning = st.text_area("Positioning", value=p.get("positioning", ""))
-        target_audience = st.text_area("Target Audience", value=p.get("target_audience", ""))
-        products_services = st.text_area("Products / Services (one per line)", value="\n".join(p.get("products_services", [])))
-        tone_description = st.text_area("Tone of Voice Description", value=p.get("tone_of_voice", {}).get("description", ""))
-        vocabulary = st.text_area("Recurring Vocabulary (one per line)", value="\n".join(p.get("vocabulary", [])))
-        visual_direction = st.text_area("Visual Direction", value=p.get("visual_direction", ""))
-        content_pillars = st.text_area("Content Pillars (one per line)", value="\n".join(p.get("content_pillars", [])))
-        calls_to_action = st.text_area("Calls to Action (one per line)", value="\n".join(p.get("calls_to_action", [])))
-        topics_to_avoid = st.text_area("Topics to Avoid (one per line)", value="\n".join(p.get("topics_to_avoid", [])))
+    profile_cards = [
+        ("🎯", "Positioning", p.get("positioning", ""), "#2E86FF"),
+        ("👥", "Target Audience", p.get("target_audience", ""), "#FF8A65"),
+        ("🛍️", "Products & Services", ", ".join(p.get("products_services", [])), "#3DDC84"),
+        ("🗣️", "Tone of Voice", p.get("tone_of_voice", {}).get("description", ""), "#B388FF"),
+        ("🔤", "Vocabulary", ", ".join(p.get("vocabulary", [])), "#4DD0E1"),
+        ("🎨", "Visual Direction", p.get("visual_direction", ""), "#F06292"),
+        ("📌", "Content Pillars", ", ".join(p.get("content_pillars", [])), "#FFD54A"),
+        ("📢", "Calls to Action", ", ".join(p.get("calls_to_action", [])), "#7C4DFF"),
+        ("🚫", "Topics to Avoid", ", ".join(p.get("topics_to_avoid", [])), "#26C6DA"),
+    ]
 
-        save = st.form_submit_button("Save Changes")
+    cardcols = st.columns(3)
+    for idx, (icon, label, content, color) in enumerate(profile_cards):
+        with cardcols[idx % 3]:
+            render_profile_card(icon, label, content, color)
 
-    if save:
-        st.session_state.brand_profile = {
-            "positioning": positioning,
-            "target_audience": target_audience,
-            "products_services": [x.strip() for x in products_services.split("\n") if x.strip()],
-            "tone_of_voice": {"description": tone_description, "evidence": p.get("tone_of_voice", {}).get("evidence", [])},
-            "vocabulary": [x.strip() for x in vocabulary.split("\n") if x.strip()],
-            "visual_direction": visual_direction,
-            "content_pillars": [x.strip() for x in content_pillars.split("\n") if x.strip()],
-            "calls_to_action": [x.strip() for x in calls_to_action.split("\n") if x.strip()],
-            "topics_to_avoid": [x.strip() for x in topics_to_avoid.split("\n") if x.strip()],
-            "sources": p.get("sources", []),
-        }
-        st.success("Changes saved!")
+    with st.expander("✏️ Edit Brand Profile"):
+        with st.form("edit_form"):
+            positioning = st.text_area("Positioning", value=p.get("positioning", ""))
+            target_audience = st.text_area("Target Audience", value=p.get("target_audience", ""))
+            products_services = st.text_area("Products / Services (one per line)", value="\n".join(p.get("products_services", [])))
+            tone_description = st.text_area("Tone of Voice Description", value=p.get("tone_of_voice", {}).get("description", ""))
+            vocabulary = st.text_area("Recurring Vocabulary (one per line)", value="\n".join(p.get("vocabulary", [])))
+            visual_direction = st.text_area("Visual Direction", value=p.get("visual_direction", ""))
+            content_pillars = st.text_area("Content Pillars (one per line)", value="\n".join(p.get("content_pillars", [])))
+            calls_to_action = st.text_area("Calls to Action (one per line)", value="\n".join(p.get("calls_to_action", [])))
+            topics_to_avoid = st.text_area("Topics to Avoid (one per line)", value="\n".join(p.get("topics_to_avoid", [])))
+
+            save = st.form_submit_button("Save Changes")
+
+        if save:
+            st.session_state.brand_profile = {
+                "positioning": positioning,
+                "target_audience": target_audience,
+                "products_services": [x.strip() for x in products_services.split("\n") if x.strip()],
+                "tone_of_voice": {"description": tone_description, "evidence": p.get("tone_of_voice", {}).get("evidence", [])},
+                "vocabulary": [x.strip() for x in vocabulary.split("\n") if x.strip()],
+                "visual_direction": visual_direction,
+                "content_pillars": [x.strip() for x in content_pillars.split("\n") if x.strip()],
+                "calls_to_action": [x.strip() for x in calls_to_action.split("\n") if x.strip()],
+                "topics_to_avoid": [x.strip() for x in topics_to_avoid.split("\n") if x.strip()],
+                "sources": p.get("sources", []),
+            }
+            st.success("Changes saved!")
+            st.rerun()
 
     with st.expander("View Sources"):
         st.json(p.get("sources", []))
