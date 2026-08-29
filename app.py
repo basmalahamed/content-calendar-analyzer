@@ -13,7 +13,7 @@ from urllib.parse import quote
 import pandas as pd
 import google.generativeai as genai
 
-st.set_page_config(page_title="AI Content Calendar", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Basata", page_icon="🔍", layout="wide")
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 for key, default in [("brand_profile", None), ("trends", None), ("trend_pool", []), ("calendar", None)]:
@@ -32,10 +32,10 @@ def score_color(score):
     except Exception:
         return "#AAAAAA"
     if score >= 70:
-        return "#3DDC84"
+        return "#1E9E5A"
     if score >= 40:
-        return "#FFD54A"
-    return "#FF6B6B"
+        return "#B8860B"
+    return "#D9463A"
 
 # ---------- Website analysis ----------
 
@@ -271,7 +271,7 @@ def render_profile_card(icon, label, content, color):
 
 # ---------- UI ----------
 
-st.title("🧠 AI Content Calendar")
+st.title("Basata")
 st.caption("Analyzes a brand's website, extracts a Brand Profile, finds relevant trends, and generates a content calendar.")
 
 with st.form("inputs_form"):
@@ -399,7 +399,7 @@ if st.session_state.brand_profile:
         for i, t in enumerate(st.session_state.trends):
             with st.expander(f"📈 {t.get('trend_name','Trend')}"):
                 st.markdown(
-                    f"<span style='color:#FFD54A;font-weight:700;'>Brand fit: {t.get('brand_fit_score','?')}/10</span>",
+                    f"<span style='color:#B8860B;font-weight:700;'>Brand fit: {t.get('brand_fit_score','?')}/10</span>",
                     unsafe_allow_html=True,
                 )
                 st.write(t.get("description", ""))
