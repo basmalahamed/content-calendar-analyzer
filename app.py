@@ -13,7 +13,7 @@ from urllib.parse import quote
 import pandas as pd
 import google.generativeai as genai
 
-st.set_page_config(page_title="Basata", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Tempo", page_icon="🔍", layout="wide")
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 for key, default in [("brand_profile", None), ("trends", None), ("trend_pool", []), ("calendar", None)]:
