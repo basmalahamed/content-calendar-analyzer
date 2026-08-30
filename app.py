@@ -271,7 +271,7 @@ def render_profile_card(icon, label, content, color):
 
 # ---------- UI ----------
 
-st.title("Basata")
+st.title("Tempo")
 st.caption("Analyzes a brand's website, extracts a Brand Profile, finds relevant trends, and generates a content calendar.")
 
 with st.form("inputs_form"):
